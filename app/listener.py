@@ -1,17 +1,26 @@
 import psycopg
+import asyncio
+
 from app.config import DATABASE_URL
+from app.websocket_manager import manager
 
 
-def listen_for_changes():
-    with psycopg.connect(DATABASE_URL, autocommit=True) as conn:
-        
-        with conn.cursor() as cur:
-            cur.execute("LISTEN order_changes;")
+async def listen_for_changes():
 
-            print("Listening for PostgreSQL notifications...")
+    conn = psycopg.connect(DATABASE_URL, autocommit=True)
 
-            for notify in conn.notifies():
-                print(f"Received notification: {notify.payload}")
+    conn.execute("LISTEN order_changes;")
 
+    print("Listening for PostgreSQL notifications...")
 
-listen_for_changes()
+    while True:
+
+        notifications = conn.notifies(timeout=1)
+
+        for notify in notifications:
+
+            print(f"Received notification: {notify.payload}")
+
+            await manager.broadcast(notify.payload)
+
+        await asyncio.sleep(0.1)
