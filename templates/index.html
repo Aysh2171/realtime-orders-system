@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Real-Time Orders</title>
 </head>
@@ -16,11 +17,14 @@
 
         socket.onmessage = function(event) {
 
+            const data = JSON.parse(event.data);
+
             const messages = document.getElementById("messages");
 
             const item = document.createElement("li");
 
-            item.textContent = event.data;
+            item.textContent =
+                `${data.operation} → ${data.data.customer_name} ordered ${data.data.product_name} (${data.data.status})`;
 
             messages.appendChild(item);
         };
@@ -32,4 +36,5 @@
     </script>
 
 </body>
+
 </html>
